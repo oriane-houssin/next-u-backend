@@ -22,6 +22,17 @@ module.exports = async function (fastify, opts) {
     preHandler: validateToken,
     handler: async (req, reply) => {
       // add the route implementation here
+      const user = await database('user').where({
+        id: req.userId
+      }).first()
+
+      return{
+        user: {
+          email: user.email,
+          username: user.username,
+          token: user.token
+        }
+      }
     }
   })
 
@@ -45,6 +56,26 @@ module.exports = async function (fastify, opts) {
     method: 'POST',
     handler: async (req, reply) => {
       // add the route implementation here
+      console.log(req.body)
+      const username = req.body.user.username
+      const email = req.body.user.email
+      const password = await hashString(req.body.user.password)
+      const token = await generateToken(req.body.user.token)
+
+      await database('user').insert({
+        username: username,
+        email: email,
+        password: password,
+        token: token
+        
+      })
+      return {
+        user: {
+          username: username,
+          token: token,
+          email: email
+        }
+      }
     }
   })
 
